@@ -1,0 +1,150 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PyPulse Engine - Python Cloud Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Navbar -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="brand-logo">🐍</div>
+        <div>
+          <h1 class="brand-name">PyPulse Engine</h1>
+          <span class="brand-sub">FastAPI Asynchronous Microservice</span>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          <span id="health-status">Checking...</span>
+        </div>
+        <a href="/docs" target="_blank" class="btn-swagger">⚡ OpenAPI Docs</a>
+      </div>
+    </header>
+
+    <!-- Top Telemetry Row -->
+    <section class="telemetry-grid">
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">CPU Utilization</span>
+          <span class="stat-icon">💻</span>
+        </div>
+        <div class="stat-value" id="cpu-val">-- %</div>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" id="cpu-bar" style="width: 0%;"></div></div>
+        <div class="stat-foot" id="cpu-foot">Cores: --</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">RAM Usage</span>
+          <span class="stat-icon">🧠</span>
+        </div>
+        <div class="stat-value" id="ram-val">-- %</div>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" id="ram-bar" style="width: 0%; background: #a855f7;"></div></div>
+        <div class="stat-foot" id="ram-foot">Free: -- MB</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Throughput (RPS)</span>
+          <span class="stat-icon">⚡</span>
+        </div>
+        <div class="stat-value" id="rps-val">-- req/s</div>
+        <div class="stat-foot" id="latency-foot">Avg Latency: -- ms</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Uptime</span>
+          <span class="stat-icon">⏱️</span>
+        </div>
+        <div class="stat-value" id="uptime-val">-- s</div>
+        <div class="stat-foot" id="env-foot">Env: Production (Python 3.10)</div>
+      </div>
+    </section>
+
+    <!-- Main Content Split -->
+    <main class="main-grid">
+      <!-- Left: Cluster Node Management -->
+      <section class="card node-panel">
+        <div class="panel-header">
+          <h2>🌐 Cluster Node Management</h2>
+          <button class="btn btn-primary" onclick="openAddNodeModal()">+ Provision Node</button>
+        </div>
+
+        <div class="node-list" id="node-list">
+          <div class="empty-state">Loading cluster nodes...</div>
+        </div>
+      </section>
+
+      <!-- Right: Interactive API Tester & Console -->
+      <section class="card tester-panel">
+        <div class="panel-header">
+          <h2>📡 API Test Sandbox</h2>
+          <span class="tag">Live REST</span>
+        </div>
+
+        <div class="quick-endpoints">
+          <button class="btn-api" onclick="callApi('/api/health')"><span class="badge get">GET</span> /api/health</button>
+          <button class="btn-api" onclick="callApi('/api/system')"><span class="badge get">GET</span> /api/system</button>
+          <button class="btn-api" onclick="callApi('/api/nodes')"><span class="badge get">GET</span> /api/nodes</button>
+          <button class="btn-api" onclick="callApi('/api/analytics/summary')"><span class="badge get">GET</span> /api/analytics/summary</button>
+        </div>
+
+        <div class="console-box">
+          <div class="console-header">
+            <span>Live Response Output</span>
+            <button class="btn-mini" onclick="clearConsole()">Clear</button>
+          </div>
+          <pre id="console-output">// Click an endpoint above to execute dynamic API request...</pre>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal for Adding Node -->
+  <div class="modal-overlay" id="node-modal">
+    <div class="modal">
+      <h3>Provision New Cluster Node</h3>
+      <form id="node-form" onsubmit="handleCreateNode(event)">
+        <div class="form-group">
+          <label>Node Name / Identifier</label>
+          <input type="text" id="node-name" required placeholder="e.g. pulse-edge-singapore" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Region</label>
+            <select id="node-region">
+              <option value="eu-central-1">eu-central-1 (Frankfurt)</option>
+              <option value="us-east-1">us-east-1 (N. Virginia)</option>
+              <option value="ap-northeast-1">ap-northeast-1 (Tokyo)</option>
+              <option value="ap-southeast-1">ap-southeast-1 (Singapore)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="node-role">
+              <option value="worker">Worker Node</option>
+              <option value="master">Control Plane</option>
+              <option value="gateway">API Gateway</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeAddNodeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Provision Node</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
